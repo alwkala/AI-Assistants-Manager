@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        .chat-container {
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 2rem;
+            border: 1px solid #ccc;
+            border-radius: 0.5rem;
+        }
+        .chat-box {
+            height: 300px;
+            overflow-y: scroll;
+            border: 1px solid #ccc;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 0.5rem;
+        }
+        .input-container {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .input-container textarea {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 0.5rem;
+            resize: vertical;
+        }
+        .input-container button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            border-radius: 0.5rem;
+        }
+        .input-container button:hover {
+            background-color: #0056b3;
+        }
+        .dark-mode {
+            background-color: #1a202c;
+            color: #e2e8f0;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Navbar -->
+    <nav class="bg-blue-500 p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-white text-xl font-bold">Chatbot App</h1>
+            <div>
+                <a href="#" class="text-white text-sm mx-2">Home</a>
+                <a href="#" class="text-white text-sm mx-2">About</a>
+                <a href="#" class="text-white text-sm mx-2">Contact</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="chat-container bg-white shadow-lg">
+        <div id="status-message" class="mb-4 text-green-500">Model is Running successfully: ePlusWeb AI</div>
+        <div class="chat-box bg-white shadow-lg rounded-lg overflow-y-auto max-h-80 p-4">
+            <!-- Chat messages will appear here -->
+        </div>
+        <div class="input-container">
+            <textarea id="user-input" placeholder="Type your message here..." class="border p-2 rounded resize-y w-full"></textarea>
+            <button id="send-button" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Send</button>
+        </div>
+        <div id="loading-message" class="mt-4 text-blue-500 text-center" style="display: none;">
+            <svg class="animate-spin h-5 w-5 mr-3 inline-block text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.373A8 8 0 0112 4v4a4 4 0 00-4 4H6zm14-4a8 8 0 01-8 8v-4a4 4 0 004-4h4z"></path>
+            </svg>
+            <span>Loading...</span>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('user-input').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        });
+
+        document.getElementById('send-button').addEventListener('click', function() {
+            sendMessage();
+        });
+
+        async function sendMessage() {
+            const userInput = document.getElementById('user-input').value.trim();
+            if (userInput === '') return;
+
+            const chatBox = document.querySelector('.chat-box');
+            chatBox.innerHTML += `<p><strong>You:</strong> ${userInput.replace(/\n/g, '<br>')}</p>`;
+
+            const loadingMessage = document.getElementById('loading-message');
+            loadingMessage.style.display = 'block';
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: userInput }),
+                });
+                const data = await response.json();
+                loadingMessage.style.display = 'none';
+                chatBox.innerHTML += `<p><strong>Chatbot:</strong> ${data.message.replace(/\n/g, '<br>')}</p>`;
+                chatBox.scrollTop = chatBox.scrollHeight;
+
+                document.getElementById('user-input').value = '';
+            } catch (error) {
+                loadingMessage.style.display = 'none';
+                chatBox.innerHTML += `<p><strong>Error:</strong> Sorry, there was an error processing your request.</p>`;
+                console.error('Error details:', error);
+            }
+        }
+
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        const body = document.body;
+
+        darkModeToggle.addEventListener('change', function() {
+            body.classList.toggle('dark-mode');
+        });
+    </script>
+</body>
+</html>
